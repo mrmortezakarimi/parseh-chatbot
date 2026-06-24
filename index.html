@@ -28,7 +28,6 @@ button { padding: 12px 20px; background: #e94560; border: none; border-radius: 2
 <input type="text" id="userInput" placeholder="پیام خود را بنویسید..." onkeypress="if(event.key==='Enter')sendMessage()">
 </div>
 <script>
-const API_KEY = "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";
 async function sendMessage() {
 const input = document.getElementById('userInput');
 const messages = document.getElementById('messages');
@@ -39,14 +38,14 @@ messages.innerHTML += `<div class="message user">${text}</div>`;
 messages.innerHTML += `<div class="message bot typing" id="typing">در حال تایپ...</div>`;
 messages.scrollTop = messages.scrollHeight;
 try {
-const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+const res = await fetch('/api/chat', {
 method: 'POST',
-headers: { 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json' },
-body: JSON.stringify({ model: 'llama3-8b-8192', messages: [{ role: 'system', content: 'تو پارسه هستی، یک دستیار هوشمند فارسی زبان. همیشه به فارسی جواب بده.' }, { role: 'user', content: text }] })
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ message: text })
 });
 const data = await res.json();
 document.getElementById('typing').remove();
-messages.innerHTML += `<div class="message bot">${data.choices[0].message.content}</div>`;
+messages.innerHTML += `<div class="message bot">${data.reply}</div>`;
 } catch(e) {
 document.getElementById('typing').remove();
 messages.innerHTML += `<div class="message bot">خطایی رخ داد!</div>`;
