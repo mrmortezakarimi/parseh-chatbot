@@ -37,20 +37,23 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    // If Groq returns an error
+    // اگر خطا برگشت
     if (data.error) {
       return res.status(500).json({ error: data.error.message });
     }
 
-    // If no choices returned
+    // اگر choices خالی بود
     if (!data.choices || !data.choices[0]) {
       return res.status(500).json({ error: 'No response from model' });
     }
 
-    // Success
-    return res.status(200).json({
-      reply: data.choices[0].message.content
-    });
+    // گرفتن جواب درست
+    const reply =
+      data.choices[0].message?.content ||
+      data.choices[0].delta?.content ||
+      "پاسخی دریافت نشد";
+
+    return res.status(200).json({ reply });
 
   } catch (err) {
     return res.status(500).json({
