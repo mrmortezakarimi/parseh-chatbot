@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "mixtral-8x7b-32768",   // ⭐ مدل جدید و فعال
+        model: "llama-3.1-8b-instant",   // ⭐ مدل جدید و فعال
         messages: [
           { role: "system", content: "تو پارسه هستی، یک دستیار هوشمند فارسی زبان." },
           { role: "user", content: message }
