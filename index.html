@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -20,38 +21,21 @@ button { padding: 12px 20px; background: #e94560; border: none; border-radius: 2
 </head>
 <body>
 <div class="header">🤖 پارسه - دستیار هوشمند</div>
+
 <div class="messages" id="messages">
 <div class="message bot">سلام! من پارسه هستم، دستیار هوشمند شما. چطور می‌تونم کمکتون کنم؟</div>
 </div>
+
 <div class="input-area">
 <button onclick="sendMessage()">ارسال</button>
 <input type="text" id="userInput" placeholder="پیام خود را بنویسید..." onkeypress="if(event.key==='Enter')sendMessage()">
 </div>
-<script>
-async function sendMessage() {
-const input = document.getElementById('userInput');
-const messages = document.getElementById('messages');
-const text = input.value.trim();
-if (!text) return;
-input.value = '';
-messages.innerHTML += `<div class="message user">${text}</div>`;
-messages.innerHTML += `<div class="message bot typing" id="typing">در حال تایپ...</div>`;
-messages.scrollTop = messages.scrollHeight;
-try {
-const res = await fetch('/api/chat', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify({ message: text })
-});
-const data = await res.json();
-document.getElementById('typing').remove();
-messages.innerHTML += `<div class="message bot">${data.reply}</div>`;
-} catch(e) {
-document.getElementById('typing').remove();
-messages.innerHTML += `<div class="message bot">خطایی رخ داد!</div>`;
-}
-messages.scrollTop = messages.scrollHeight;
-}
-</script>
+
+<!-- ❗ این اسکریپت داخلی حذف شد چون chat.js داریم -->
+<!-- <script> ... </script> -->
+
+<!-- ⭐ این خط را اضافه کن تا chat.js لود شود -->
+<script src="chat.js"></script>
+
 </body>
 </html>
