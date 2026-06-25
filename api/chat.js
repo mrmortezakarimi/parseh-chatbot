@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "llama3-70b-8192",   // ⭐ مدل جدید و فعال
+        model: "mixtral-8x7b-32768",   // ⭐ مدل جدید و فعال
         messages: [
           { role: "system", content: "تو پارسه هستی، یک دستیار هوشمند فارسی زبان." },
           { role: "user", content: message }
@@ -28,7 +28,9 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (data.error) {
-      return res.status(500).json({ reply: "خطا از سمت مدل: " + data.error.message });
+      return res.status(500).json({
+        reply: "خطا از سمت مدل: " + data.error.message,
+      });
     }
 
     const reply =
@@ -40,6 +42,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ reply });
 
   } catch (err) {
-    return res.status(500).json({ reply: "خطای سرور: " + err.message });
+    return res.status(500).json({
+      reply: "خطای سرور: " + err.message,
+    });
   }
 }
