@@ -4,6 +4,9 @@ const chatBox = document.getElementById("messages");
 // ⭐ حافظهٔ مکالمه
 let conversation = [];
 
+// ⭐ خلاصهٔ بلندمدت
+let memorySummary = "";
+
 async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
@@ -23,12 +26,52 @@ async function sendMessage() {
   chatBox.appendChild(typingDiv);
   chatBox.scrollTop = chatBox.scrollHeight;
 
-  // ⭐ ساختن پیام کامل شامل تاریخچه
-  const historyText = conversation
+  // ⭐ اگر تاریخچه زیاد شد → خلاصه‌سازی
+  if (conversation.length > 10) {
+    const historyText = conversation
+      .map(msg => (msg.role === "user" ? "کاربر: " : "پارسه: ") + msg.content)
+      .join("\n");
+
+    const summaryPrompt = `
+    این تاریخچهٔ گفتگو را خلاصه کن و فقط نکات مهم را نگه دار:
+    ${historyText}
+
+    خلاصه را کوتاه، دقیق و فقط شامل اطلاعات مهم بنویس.
+    `;
+
+    try {
+      const summaryResponse = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: summaryPrompt })
+      });
+
+      const summaryData = await summaryResponse.json();
+
+      // ⭐ ذخیرهٔ خلاصه
+      memorySummary = summaryData.reply || memorySummary;
+
+      // ⭐ پاک کردن تاریخچه و شروع دوباره
+      conversation = [];
+    } catch (e) {
+      console.log("خطا در خلاصه‌سازی");
+    }
+  }
+
+  // ⭐ ساختن پیام نهایی شامل خلاصه + پیام‌های اخیر
+  const recentHistory = conversation
     .map(msg => (msg.role === "user" ? "کاربر: " : "پارسه: ") + msg.content)
     .join("\n");
 
-  const finalPrompt = `این تاریخچهٔ گفتگو تا الان است:\n${historyText}\n\nحالا ادامهٔ گفتگو را بر اساس این تاریخچه جواب بده.`;
+  const finalPrompt = `
+این خلاصهٔ حافظهٔ بلندمدت گفتگو است:
+${memorySummary}
+
+این هم پیام‌های اخیر گفتگو:
+${recentHistory}
+
+حالا بر اساس این دو، ادامهٔ گفتگو را طبیعی و دقیق جواب بده.
+`;
 
   try {
     const response = await fetch("/api/chat", {
