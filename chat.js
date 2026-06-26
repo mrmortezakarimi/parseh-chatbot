@@ -1,13 +1,9 @@
 const input = document.getElementById("userInput");
 const chatBox = document.getElementById("messages");
 
-// ⭐ حافظهٔ مکالمه
+// حافظهٔ کوتاه
 let conversation = [];
-
-// ⭐ خلاصهٔ بلندمدت
 let memorySummary = "";
-
-// ⭐ جلوگیری از سلام تکراری
 let greeted = false;
 
 async function sendMessage() {
@@ -26,115 +22,77 @@ async function sendMessage() {
   chatBox.appendChild(typingDiv);
   chatBox.scrollTop = chatBox.scrollHeight;
 
+  // خلاصه‌سازی ساده
   if (conversation.length > 10) {
     const historyText = conversation
-      .map(msg => (msg.role === "user" ? "کاربر: " : "دستیار: ") + msg.content)
+      .map(m => (m.role === "user" ? "کاربر: " : "دستیار: ") + m.content)
       .join("\n");
 
     const summaryPrompt = `
-    این تاریخچهٔ گفتگو را خلاصه کن و فقط نکات مهم را نگه دار:
+    این گفتگو را خلاصه کن و فقط نکات مهم را نگه دار:
     ${historyText}
-    خلاصه را کوتاه، دقیق و فقط شامل اطلاعات مهم بنویس.
+    خلاصه کوتاه و دقیق باشد.
     `;
 
     try {
-      const summaryResponse = await fetch("/api/chat", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: summaryPrompt })
       });
 
-      const summaryData = await summaryResponse.json();
-      memorySummary = summaryData.reply || memorySummary;
+      const data = await res.json();
+      memorySummary = data.reply || memorySummary;
       conversation = [];
-    } catch (e) {
-      console.log("خطا در خلاصه‌سازی");
-    }
+    } catch {}
   }
 
   const recentHistory = conversation
-    .map(msg => (msg.role === "user" ? "کاربر: " : "دستیار: ") + msg.content)
+    .map(m => (m.role === "user" ? "کاربر: " : "دستیار: ") + m.content)
     .join("\n");
 
+  // ⭐ شخصیت ساده‌شده و قابل فهم برای مدل
   const finalPrompt = `
-تو یک دستیار هوشمند فارسی‌زبان هستی.
-لحن پیش‌فرض تو محترمانه و مودب است، اما خشک و اداری نیست.
-تو لهجه نداری.
+تو یک دستیار فارسی‌زبان هستی.
+لحن تو محترمانه و دوستانه است، اما خشک و اداری نیست.
 
-### 🎯 تشخیص لحن کاربر
-- واژه‌های رسمی → رسمی پاسخ بده.
-- محاوره‌ای، خودمانی، عامیانه → صمیمی شو.
-- شوخی، فحش دوستانه، ایموجی → شوخ‌طبع و راحت شو.
-- دستور مستقیم مثل «رسمی‌تر باش» → لحن را تغییر بده.
+قوانین لحن:
+- اگر کاربر رسمی حرف زد → رسمی جواب بده.
+- اگر کاربر صمیمی یا محاوره‌ای حرف زد → صمیمی جواب بده.
+- اگر کاربر شوخی یا فحش دوستانه گفت → راحت و بامزه جواب بده.
+- فقط یک‌بار سلام کن. سلام تکراری ننویس.
 
-### 🎯 فحش دوستانه = صمیمیت
-- فحش دوستانه را بی‌احترامی ندان.
-- پاسخ گرم، دوستانه و کمی بامزه بده.
+قوانین نوشتن:
+- فقط جواب بده. توضیح اضافه ننویس.
+- جمله‌ها کوتاه، روان و طبیعی باشند.
+- از ساختارهای عجیب، ترجمه‌ای یا تکراری استفاده نکن.
+- تحلیل ذهنی ننویس. فقط پاسخ نهایی را بده.
 
-### 🎯 حافظهٔ احساسی کوتاه‌مدت
-- چند پیام پشت‌سرهم صمیمی → تو هم صمیمی‌تر شو.
-- چند پیام جدی → رسمی‌تر شو.
-- چند پیام شوخی → شوخ‌تر شو.
-- تغییرات باید تدریجی باشد.
-
-### 🎯 تنوع پاسخ
-- از تکرار جملات خودداری کن.
-- ساختار جمله را تغییر بده.
-- طبیعی و روان بنویس.
-
-### 🎯 قوانین نگارش فارسی طبیعی
-- جمله‌ها کوتاه، روان و شبیه گفتار یک فارسی‌زبان باشند.
-- از ساختارهای ترجمه‌ای دوری کن.
-- از افعال رایج مثل «می‌تونم»، «باشه»، «حتماً» استفاده کن.
-- اگر رسمی هستی → بدون محاوره.
-- اگر صمیمی هستی → محاورهٔ طبیعی، نه مصنوعی.
-
-### 🎯 قانون پاسخ مستقیم
-- فقط پاسخ نهایی را بنویس.
-- هیچ توضیح اضافه، تحلیل ذهنی یا مقدمه ننویس.
-- ننویس «کاربر این را گفت پس…».
-
-### 🎯 قانون سلام تکراری
-- اگر کاربر سلام کرد و هنوز جواب ندادی → یک‌بار سلام کن.
-- بعد از آن دیگر سلام تکراری ننویس.
-
-### 🎯 اصول ثابت
-پاسخ‌ها باید:
-- طبیعی
-- روان
-- محترمانه
-- هماهنگ با لحن کاربر
-- بدون خشکی اداری
-- بدون توضیح اضافه
-- بدون سلام تکراری
-
-باشند.
-
-این خلاصهٔ حافظهٔ بلندمدت گفتگو است:
+این خلاصهٔ گفتگو است:
 ${memorySummary}
 
-این هم پیام‌های اخیر گفتگو:
+این پیام‌های اخیر است:
 ${recentHistory}
 
 حالا فقط پاسخ مناسب را بنویس.
 `;
 
   try {
-    const response = await fetch("/api/chat", {
+    const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: finalPrompt })
     });
 
-    const data = await response.json();
+    const data = await res.json();
     document.getElementById("typing").remove();
 
     const reply = data.reply || "خطا در دریافت پاسخ";
-
     addMessage(reply, "bot");
+
     conversation.push({ role: "assistant", content: reply });
 
-  } catch (e) {
+  } catch {
     document.getElementById("typing").remove();
     addMessage("خطایی رخ داد!", "bot");
   }
